@@ -95,11 +95,13 @@ document.addEventListener('click', (e) => {
     }
     case 'addfixed': {
       const name = cleanText($('#x-name').value, 60), n = parseNum($('#x-amt').value);
+      const freq = $('#x-freq')?.value || 'monthly';
       const day = Math.min(31, Math.max(1, parseInt($('#x-day').value, 10) || 1));
       if (!name) { $('#x-err').textContent = 'Escribe un nombre.'; $('#x-name').focus(); break; }
       if (!(n > 0)) { $('#x-err').textContent = 'Ingresa un monto mayor que cero.'; $('#x-amt').focus(); break; }
       const first = new Date(); first.setDate(1);
-      state.fixed.push({ id: uid(), name, amount: round2(n), currency: $('#x-cur').value, category: $('#x-cat').value, day, since: iso(first) });
+      const since = freq === 'monthly' ? iso(first) : today();
+      state.fixed.push({ id: uid(), name, amount: round2(n), currency: $('#x-cur').value, category: $('#x-cat').value, day, freq, since });
       persist(); render(); $('#x-name').focus(); toast('Gasto fijo agregado'); break;
     }
     case 'delfixed':

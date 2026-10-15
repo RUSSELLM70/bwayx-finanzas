@@ -20,7 +20,7 @@ export const sumBy = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
 const debtPseudoFixed = () => state.debts.filter((d) => d.min > 0).map((d) => ({ id: 'dm:' + d.id, name: `Mínimo ${d.name}`, amount: d.min, currency: d.currency, category: 'Deudas', day: d.dueDay, since: d.since || '2000-01-01' }));
 export function payItems(r) {
   const items = [];
-  for (const t of fixedIn(state.fixed, r, conv)) items.push({ key: t.id, kind: 'fixed', label: 'Gasto fijo', name: t.note, amount: t.amount, date: t.date, status: state.paid[t.id] ? 'paid' : 'pending' });
+  for (const t of fixedIn(state.fixed, r, conv)) { const fl = t.freq === 'weekly' ? 'Fijo semanal' : t.freq === 'fortnight' ? 'Fijo quincenal' : 'Gasto fijo'; items.push({ key: t.id, kind: 'fixed', label: fl, name: t.note, amount: t.amount, date: t.date, status: state.paid[t.id] ? 'paid' : 'pending' }); }
   for (const t of state.txs) if (t.bill && inRange(t.date, r)) items.push({ key: 'bill:' + t.id, kind: 'bill', txId: t.id, label: 'Pago', name: t.note || t.category, amount: t.amount, date: t.date, status: t.status === 'paid' ? 'paid' : 'pending' });
   for (const t of fixedIn(debtPseudoFixed(), r, conv)) items.push({ key: t.id, kind: 'debtmin', debtId: t.fixedId.slice(3), label: 'Mínimo tarjeta', name: t.note, amount: t.amount, date: t.date, status: state.paid[t.id] ? 'paid' : 'pending' });
   return items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.name.localeCompare(b.name)));

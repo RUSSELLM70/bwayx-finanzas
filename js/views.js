@@ -66,13 +66,15 @@ export function incomeSection() {
 
 export function fixedSection() {
   const total = fixedTotal(state.fixed, conv);
-  const rows = state.fixed.map((f) => `<li class="row between" style="min-height:48px;gap:8px"><span style="min-width:0;flex:1"><b style="font-weight:500">${esc(f.name)}</b><span class="muted" style="display:block;font-size:13px">${esc(f.category)} · día ${f.day} de cada mes</span></span>
+  const freqDesc = (f) => { const fr = f.freq || 'monthly'; return fr === 'weekly' ? 'Semanal' : fr === 'fortnight' ? 'Quincenal' : `día ${f.day} de cada mes`; };
+  const rows = state.fixed.map((f) => `<li class="row between" style="min-height:48px;gap:8px"><span style="min-width:0;flex:1"><b style="font-weight:500">${esc(f.name)}</b><span class="muted" style="display:block;font-size:13px">${esc(f.category)} · ${freqDesc(f)}</span></span>
     <span class="num" style="font-weight:600">${fmtC(f.amount, f.currency || state.settings.currency)}</span>
     <button class="icon-btn" data-act="delfixed" data-id="${esc(f.id)}" aria-label="Quitar ${esc(f.name)}">${icon('trash')}</button></li>`).join('');
   return `<div class="field"><label for="x-name">Nombre</label><input id="x-name" data-n="text" class="input" maxlength="60" placeholder="Ej. Alquiler, internet, seguro" autocomplete="off"></div>
-    <div class="grid2"><div class="field"><label for="x-amt">Monto mensual</label><div class="amtrow"><input id="x-amt" data-n="money" class="input num" inputmode="decimal" placeholder="0" autocomplete="off" data-enter="#x-add">${curField('x-cur')}</div></div>
-      <div class="field"><label for="x-day">Día de pago</label><input id="x-day" data-n="int" class="input num" inputmode="numeric" maxlength="2" value="1" data-enter="#x-add"></div></div>
+    <div class="field"><label for="x-amt">Monto</label><div class="amtrow"><input id="x-amt" data-n="money" class="input num" inputmode="decimal" placeholder="0" autocomplete="off" data-enter="#x-add">${curField('x-cur')}</div></div>
     ${prevLine('x-amt', 'x-cur')}
+    <div class="grid2"><div class="field"><label for="x-freq">Frecuencia</label><select id="x-freq" class="input"><option value="monthly">Mensual</option><option value="fortnight">Quincenal (cada 2 sem.)</option><option value="weekly">Semanal</option></select></div>
+      <div class="field"><label for="x-day">Día de mes (mensual)</label><input id="x-day" data-n="int" class="input num" inputmode="numeric" maxlength="2" value="1" data-enter="#x-add"></div></div>
     <div class="field"><label for="x-cat">Categoría</label><select id="x-cat" class="input">${EXPENSE_CATS.map((c) => `<option>${c}</option>`).join('')}</select></div>
     <p class="error" id="x-err" role="alert"></p>
     <button class="btn ghost block" id="x-add" data-act="addfixed">Agregar gasto fijo</button>
