@@ -280,11 +280,11 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     setInterval(check, 60 * 60 * 1000);
   }).catch(() => {});
   let announced = false;
-  const announceUpdate = () => {
-    if (!$('#overlay').hidden) return setTimeout(announceUpdate, 5000); // no interrumpe un formulario abierto
-    ask({ title: 'Nueva versión disponible', message: 'Mejoramos BWAY X. Actualiza para usar la versión más reciente. Tus datos no cambian.', confirm: 'Actualizar ahora', cancel: 'Después' })
-      .then((ok) => { if (ok) location.reload(); });
+  const autoUpdate = () => {
+    if (!$('#overlay').hidden) return setTimeout(autoUpdate, 5000); // no interrumpe un formulario abierto
+    toast('Nueva versión disponible — actualizando…');
+    setTimeout(() => location.reload(), 1500);
   };
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !announced) { announced = true; announceUpdate(); } });
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !announced) { announced = true; autoUpdate(); } });
   navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.goto && VIEWS[e.data.goto]) { ui.view = e.data.goto; render(); } });
 }
