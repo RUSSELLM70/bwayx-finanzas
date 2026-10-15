@@ -1,0 +1,6 @@
+[build]
+  command = "sh build-deploy.sh --no-zip"
+  publish = "deploy"
+
+[build.environment]
+  NODE_VERSION = "22"

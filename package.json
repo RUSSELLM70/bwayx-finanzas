@@ -1,0 +1,11 @@
+{
+  "name": "finanzas-os",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Finanzas personales: ingresos, gastos por día/quincena/mes y recomendaciones. Sin dependencias.",
+  "scripts": {
+    "start": "python3 -m http.server 5173",
+    "test": "node --test tests/*.test.js"
+  }
+}
