@@ -13,7 +13,7 @@ import { state, ui, security, health, markBackup, installDue, notifySettings, $,
 import { exportModel, calendarEvents } from './derive.js';
 import { removePayment, removeCharge, togglePay } from './actions.js';
 import { VIEWS, NAV, listHtml, debtResultsHtml } from './views.js';
-import { openSheet, installSheet, versionsSheet, pinSheet, billSheet, debtSheet, paySheet, chargeSheet, goalSheet, depositSheet, closeSheet, fillCats, submitCurrent, sheetDelete } from './sheets.js';
+import { openSheet, installSheet, versionsSheet, pinSheet, billSheet, debtSheet, paySheet, chargeSheet, goalSheet, depositSheet, fixedSheet, closeSheet, fillCats, submitCurrent, sheetDelete } from './sheets.js';
 
 if (!state.settings.onboarded && state.txs.length === 0) ui.view = 'setup';
 const startView = new URLSearchParams(location.search || '').get('view'); // viene de tocar una notificación
@@ -104,6 +104,7 @@ document.addEventListener('click', (e) => {
       state.fixed.push({ id: uid(), name, amount: round2(n), currency: $('#x-cur').value, category: $('#x-cat').value, day, freq, since });
       persist(); render(); $('#x-name').focus(); toast('Gasto fijo agregado'); break;
     }
+    case 'editfixed': { const fx = state.fixed.find((f) => f.id === id); if (fx) fixedSheet(fx); break; }
     case 'delfixed':
       ask({ title: '¿Quitar este gasto fijo?', message: 'Se quitará de todos los meses, incluidos los pasados.', confirm: 'Quitar', tone: 'danger' }).then((ok) => {
         if (!ok) return;

@@ -69,7 +69,7 @@ export function fixedSection() {
   const freqDesc = (f) => { const fr = f.freq || 'monthly'; return fr === 'weekly' ? 'Semanal' : fr === 'fortnight' ? 'Quincenal' : `día ${f.day} de cada mes`; };
   const rows = state.fixed.map((f) => `<li class="row between" style="min-height:48px;gap:8px"><span style="min-width:0;flex:1"><b style="font-weight:500">${esc(f.name)}</b><span class="muted" style="display:block;font-size:13px">${esc(f.category)} · ${freqDesc(f)}</span></span>
     <span class="num" style="font-weight:600">${fmtC(f.amount, f.currency || state.settings.currency)}</span>
-    <button class="icon-btn" data-act="delfixed" data-id="${esc(f.id)}" aria-label="Quitar ${esc(f.name)}">${icon('trash')}</button></li>`).join('');
+    <button class="icon-btn" data-act="editfixed" data-id="${esc(f.id)}" aria-label="Editar ${esc(f.name)}">${icon('sliders')}</button></li>`).join('');
   return `<div class="field"><label for="x-name">Nombre</label><input id="x-name" data-n="text" class="input" maxlength="60" placeholder="Ej. Alquiler, internet, seguro" autocomplete="off"></div>
     <div class="field"><label for="x-amt">Monto</label><div class="amtrow"><input id="x-amt" data-n="money" class="input num" inputmode="decimal" placeholder="0" autocomplete="off" data-enter="#x-add">${curField('x-cur')}</div></div>
     ${prevLine('x-amt', 'x-cur')}

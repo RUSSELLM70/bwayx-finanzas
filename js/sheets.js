@@ -86,6 +86,41 @@ export function billSheet() {
   });
 }
 
+// ---------- Gasto fijo (editar) ----------
+export function fixedSheet(f) {
+  const first = new Date(); first.setDate(1);
+  showSheet('Editar gasto fijo', `
+    ${field('Nombre', 'fx-name', `<input id="fx-name" data-n="text" class="input" maxlength="60" placeholder="Ej. Alquiler, internet, seguro" autocomplete="off" value="${esc(f.name)}">`)}
+    <div class="field"><label for="fx-amt">Monto</label><div class="amtrow"><input id="fx-amt" data-n="money" class="input amount num" inputmode="decimal" placeholder="0" value="${fmtNum(f.amount)}">${curField('fx-cur', f.currency)}</div>${prevLine('fx-amt', 'fx-cur')}</div>
+    <div class="grid2">
+      ${field('Frecuencia', 'fx-freq', `<select id="fx-freq" class="input"><option value="monthly" ${(!f.freq || f.freq === 'monthly') ? 'selected' : ''}>Mensual</option><option value="fortnight" ${f.freq === 'fortnight' ? 'selected' : ''}>Quincenal (cada 2 sem.)</option><option value="weekly" ${f.freq === 'weekly' ? 'selected' : ''}>Semanal</option></select>`)}
+      ${field('Día de mes (mensual)', 'fx-day', `<input id="fx-day" data-n="int" class="input num" inputmode="numeric" maxlength="2" value="${f.day || 1}">`)}
+    </div>
+    ${field('Categoría', 'fx-cat', `<select id="fx-cat" class="input">${catOptions(EXPENSE_CATS, f.category)}</select>`)}`,
+  () => {
+    const name = cleanText($('#fx-name').value, 60), n = parseNum($('#fx-amt').value);
+    const freq = $('#fx-freq').value;
+    const day = Math.min(31, Math.max(1, parseInt($('#fx-day').value, 10) || 1));
+    if (!name) return err('Escribe un nombre.', 'fx-name');
+    if (!(n > 0)) return err('Ingresa un monto mayor que cero.', 'fx-amt');
+    const freqChanged = freq !== (f.freq || 'monthly');
+    const since = freqChanged ? (freq === 'monthly' ? iso(first) : today()) : f.since;
+    if (freqChanged) for (const k of Object.keys(state.paid)) if (k.startsWith(`fx:${f.id}:`)) delete state.paid[k];
+    const i = state.fixed.findIndex((x) => x.id === f.id);
+    if (i >= 0) state.fixed[i] = { ...f, name, amount: round2(n), currency: $('#fx-cur').value, category: $('#fx-cat').value, day, freq, since };
+    persist();
+    done('Gasto fijo actualizado');
+  }, {
+    submit: 'Guardar cambios',
+    del: () => ask({ title: `¿Quitar "${f.name}"?`, message: 'Se quitará de todos los periodos. Esta acción no se puede deshacer.', confirm: 'Quitar', tone: 'danger' }).then((ok) => {
+      if (!ok) return;
+      state.fixed = state.fixed.filter((x) => x.id !== f.id);
+      for (const k of Object.keys(state.paid)) if (k.startsWith(`fx:${f.id}:`)) delete state.paid[k];
+      persist(); done('Gasto fijo quitado');
+    }),
+  });
+}
+
 // ---------- Deuda / tarjeta ----------
 export function debtSheet(d = null) {
   const first = new Date(); first.setDate(1);
