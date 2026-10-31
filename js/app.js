@@ -129,6 +129,19 @@ document.addEventListener('click', (e) => {
       state.qsel[k] = qDefault(state.fixed, ui.anchor, state.qsel);
       persist(); render(); toast('Gastos fijos de la quincena cargados'); break;
     }
+    case 'qsuggest': { // marcar un gasto reciente como fijo (sugerencia inteligente)
+      const name = cleanText(b.dataset.name || '', 60) || 'Gasto fijo';
+      const amt = round2(parseNum(b.dataset.amt));
+      if (!(amt > 0)) break;
+      const first = new Date(); first.setDate(1);
+      const fx = { id: uid(), name, amount: amt, currency: b.dataset.cur || state.settings.currency, category: cleanText(b.dataset.cat || '', 40) || 'Otros', day: Math.min(28, new Date().getDate()), freq: 'monthly', since: iso(first) };
+      state.fixed.push(fx);
+      const k = qKey(ui.anchor);
+      const sel = Array.isArray(state.qsel[k]) ? state.qsel[k] : qDefault(state.fixed, ui.anchor, state.qsel);
+      if (!sel.includes(fx.id)) sel.push(fx.id);
+      state.qsel[k] = sel;
+      persist(); render(); toast(`"${name}" quedó como gasto fijo`); break;
+    }
     case 'addbill': billSheet(); break;
     case 'delbill':
       ask({ title: '¿Eliminar este pago?', message: 'Se quitará de tu lista de pagos.', confirm: 'Eliminar', tone: 'danger' })

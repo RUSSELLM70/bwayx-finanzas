@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { qKey, qRange, fixedHitsRange, qDefault, qSelected, qItems, qTotal, qLoaded, qProgress } from '../js/quincena.js';
+import { qKey, qRange, fixedHitsRange, qDefault, qSelected, qItems, qTotal, qLoaded, qProgress, recentFixedCandidates } from '../js/quincena.js';
 
 const fixed = [
   { id: 'alq', name: 'Alquiler', amount: 120000, category: 'Hogar', freq: 'monthly', day: 1 },
@@ -55,4 +55,22 @@ test('qItems: marca checked y paid; qTotal suma solo los seleccionados', () => {
   assert.equal(byId.nfx.checked, false);
   assert.equal(qTotal(fixed, '2026-10-05', qsel), 142000);
   assert.deepEqual(qProgress(fixed, '2026-10-05', qsel, paid), { paid: 1, total: 2 });
+});
+
+test('recentFixedCandidates: agrupa gastos recientes, excluye los ya fijos', () => {
+  const txs = [
+    { type: 'expense', amount: 120000, category: 'Hogar', note: 'Alquiler', date: '2026-10-20' },
+    { type: 'expense', amount: 125000, category: 'Hogar', note: 'Alquiler', date: '2026-09-20' },
+    { type: 'expense', amount: 8000, category: 'Comida', note: 'Super', date: '2026-10-21' },
+    { type: 'income', amount: 450000, category: 'Salario', date: '2026-10-15' },
+    { type: 'expense', amount: 22000, category: 'Servicios', note: 'Internet', date: '2026-10-05' },
+  ];
+  const cands = recentFixedCandidates(txs, [{ name: 'Internet' }], '2026-10-31', 60);
+  const names = cands.map((c) => c.name);
+  assert.ok(names.includes('Alquiler'));
+  assert.ok(!names.includes('Internet')); // ya es gasto fijo → excluido
+  const alq = cands.find((c) => c.name === 'Alquiler');
+  assert.equal(alq.amount, 120000); // monto más reciente
+  assert.equal(alq.count, 2);
+  assert.equal(cands[0].name, 'Alquiler'); // recurrente primero
 });

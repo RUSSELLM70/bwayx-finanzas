@@ -3,7 +3,7 @@
 // pre-marcada igual que la anterior (o, si nunca se cargó, según la frecuencia
 // del gasto). Es una capa aparte (state.qsel) que NO toca la proyección de
 // fixed.js ni los cálculos de presupuesto.
-import { rangeOf, parse, iso, inRange, daysInMonth } from './dates.js';
+import { rangeOf, parse, iso, inRange, daysInMonth, today } from './dates.js';
 
 /** Clave estable de una quincena = fecha de inicio (YYYY-MM-DD) de su rango. */
 export const qKey = (anchor) => rangeOf('fortnight', anchor).start;
@@ -78,4 +78,30 @@ export function qTotal(fixed, anchor, qsel, conv = (a) => a) {
 export function qProgress(fixed, anchor, qsel, paid) {
   const items = qItems(fixed, anchor, qsel, paid).filter((it) => it.checked);
   return { paid: items.filter((it) => it.paid).length, total: items.length };
+}
+
+/**
+ * Sugerencias inteligentes: mira los movimientos de gasto recientes (últimos
+ * `days` días) y propone cuáles marcar como gasto fijo. Agrupa por nombre
+ * (nota, o categoría si no hay nota), toma el monto más reciente, cuenta las
+ * repeticiones y excluye los que ya son gasto fijo. Ordena por repeticiones y
+ * monto (lo recurrente y grande primero).
+ */
+export function recentFixedCandidates(txs, fixed, now = today(), days = 45) {
+  const endIso = now;
+  const start = iso(new Date(parse(endIso).getTime() - days * 86400000));
+  const existing = new Set((fixed || []).map((f) => (f.name || '').trim().toLowerCase()));
+  const groups = new Map();
+  for (const t of txs || []) {
+    if (!t || t.type !== 'expense' || t.charge || t.debtId || t.bill || t.goalId) continue;
+    if (!t.date || t.date < start || t.date > endIso) continue;
+    const name = ((t.note && t.note.trim()) || t.category || 'Gasto').slice(0, 60);
+    const key = name.toLowerCase();
+    if (existing.has(key)) continue;
+    const g = groups.get(key) || { name, category: t.category || 'Otros', currency: t.currency, amount: 0, count: 0, last: '' };
+    g.count++;
+    if (t.date >= g.last) { g.last = t.date; g.amount = t.amount; g.category = t.category || g.category; g.currency = t.currency; }
+    groups.set(key, g);
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count || b.amount - a.amount).slice(0, 8);
 }

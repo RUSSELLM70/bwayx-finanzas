@@ -2,7 +2,7 @@
 import { rangeOf, shift, inRange, today, parse, monthShort, monthName, iso } from './dates.js';
 import { summarize, advise, EXPENSE_CATS, INCOME_CATS } from './advice.js';
 import { fixedTotal } from './fixed.js';
-import { qRange, qKey, qItems, qTotal, qLoaded, qProgress } from './quincena.js';
+import { qRange, qKey, qItems, qTotal, qLoaded, qProgress, recentFixedCandidates } from './quincena.js';
 import { compare, priorityOrder } from './debt.js';
 import { donut, bars, lines } from './charts.js';
 import { CURRENCIES } from './money.js';
@@ -129,14 +129,27 @@ function alertsCard() {
 }
 
 // ---------- Gastos fijos de la quincena (checklist inteligente) ----------
+// Sugerencias: gastos recientes que podrían ser fijos → un toque los agrega.
+function quincenaSuggest(lead) {
+  const cands = recentFixedCandidates(state.txs, state.fixed, today());
+  if (!cands.length) return '';
+  const rows = cands.map((c) => `<li class="pay">
+      <span class="meta"><b>${esc(c.name)}</b><span>${esc(c.category || 'Otros')}${c.count > 1 ? ` · ${c.count}×` : ''}</span></span>
+      <span class="amt num muted">${fmtC(c.amount, c.currency || state.settings.currency)}</span>
+      <button class="st" data-act="qsuggest" data-name="${esc(c.name)}" data-amt="${c.amount}" data-cat="${esc(c.category || 'Otros')}" data-cur="${esc(c.currency || state.settings.currency)}" aria-label="Marcar ${esc(c.name)} como gasto fijo" style="background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;min-height:44px;font-weight:600;cursor:pointer">+ Fijo</button></li>`).join('');
+  return `<p class="muted small" style="margin-top:12px">${esc(lead)}</p><ul class="list" style="margin-top:6px">${rows}</ul>`;
+}
+
 export function quincenaCard() {
   const r = qRange(ui.anchor);
   const key = qKey(ui.anchor);
   if (!state.fixed.length) {
+    const sug = quincenaSuggest('Detectamos estos gastos de tus últimas semanas. Marcá los que son fijos para cargarlos cada quincena:');
     return `<section class="card" aria-label="Gastos fijos de la quincena">
       <p class="h2">Gastos fijos de la quincena</p>
       <p class="muted small" style="margin-top:6px">Primero registrá tus gastos fijos (alquiler, servicios, suscripciones…). Después, en cada quincena, elegís cuáles vas a pagar.</p>
-      <button class="btn block" data-act="nav" data-v="settings" style="margin-top:10px">Agregar mis gastos fijos</button></section>`;
+      ${sug}
+      <button class="btn ${sug ? 'ghost' : ''} block" data-act="nav" data-v="settings" style="margin-top:10px">Agregar otro gasto fijo</button></section>`;
   }
   const items = qItems(state.fixed, ui.anchor, state.qsel, state.paid);
   const loaded = qLoaded(ui.anchor, state.qsel);
@@ -155,7 +168,8 @@ export function quincenaCard() {
     <p class="muted small">Marcá los que vas a pagar esta quincena. La próxima vienen pre-marcados igual que esta.</p>
     <ul class="list" style="margin-top:8px">${rows}</ul>
     <div class="row between" style="margin-top:10px"><span class="muted">Total seleccionado (${nSel})</span><b class="num neg" style="font-size:18px">${fmt(total)}</b></div>
-    ${loaded ? '' : `<button class="btn block" data-act="qload" style="margin-top:10px">Cargar ${nSel} ${nSel === 1 ? 'gasto' : 'gastos'} de la quincena</button>`}</section>`;
+    ${loaded ? '' : `<button class="btn block" data-act="qload" style="margin-top:10px">Cargar ${nSel} ${nSel === 1 ? 'gasto' : 'gastos'} de la quincena</button>`}
+    ${quincenaSuggest('¿Alguno de estos gastos recientes también es fijo?')}</section>`;
 }
 
 export function homeView() {
