@@ -2,6 +2,7 @@
 import { rangeOf, shift, inRange, today, parse, monthShort, monthName, iso } from './dates.js';
 import { summarize, advise, EXPENSE_CATS, INCOME_CATS } from './advice.js';
 import { fixedTotal } from './fixed.js';
+import { qRange, qKey, qItems, qTotal, qLoaded, qProgress } from './quincena.js';
 import { compare, priorityOrder } from './debt.js';
 import { donut, bars, lines } from './charts.js';
 import { CURRENCIES } from './money.js';
@@ -127,6 +128,36 @@ function alertsCard() {
     <ul class="alerts">${list.map((a) => `<li><button class="al ${a.level}" data-act="nav" data-v="${a.view}"><span class="ti">${icon(ic[a.level], 18)}</span><span class="meta"><b>${esc(a.title)}</b><span>${esc(a.body)}</span></span></button></li>`).join('')}</ul></section>`;
 }
 
+// ---------- Gastos fijos de la quincena (checklist inteligente) ----------
+export function quincenaCard() {
+  const r = qRange(ui.anchor);
+  const key = qKey(ui.anchor);
+  if (!state.fixed.length) {
+    return `<section class="card" aria-label="Gastos fijos de la quincena">
+      <p class="h2">Gastos fijos de la quincena</p>
+      <p class="muted small" style="margin-top:6px">Agregá tus gastos fijos y después elegís, en cada quincena, cuáles vas a pagar.</p>
+      <button class="btn ghost block" data-act="guide" style="margin-top:10px">Agregar gastos fijos</button></section>`;
+  }
+  const items = qItems(state.fixed, ui.anchor, state.qsel, state.paid);
+  const loaded = qLoaded(ui.anchor, state.qsel);
+  const total = qTotal(state.fixed, ui.anchor, state.qsel, conv);
+  const prog = qProgress(state.fixed, ui.anchor, state.qsel, state.paid);
+  const nSel = items.filter((i) => i.checked).length;
+  const payBtn = (it) => it.checked
+    ? `<button class="st ${it.paid ? 'ok' : 'wait'}" data-act="togglepay" data-key="qz:${esc(key)}:${esc(it.id)}" aria-pressed="${it.paid}" aria-label="${it.paid ? 'Marcar pendiente' : 'Marcar pagado'}: ${esc(it.name)}" style="background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;min-height:44px;font-weight:600;cursor:pointer">${it.paid ? 'Pagado' : 'Pagar'}</button>`
+    : '';
+  const rows = items.map((it) => `<li class="pay">
+      <button class="chk ${it.checked ? 'ok' : ''}" data-act="qtoggle" data-id="${esc(it.id)}" aria-pressed="${it.checked}" aria-label="${it.checked ? 'Quitar' : 'Incluir'} ${esc(it.name)} en esta quincena">${icon('check', 18)}</button>
+      <span class="meta"><b>${esc(it.name)}</b><span>${esc(it.category || 'Otros')}</span></span>
+      <span class="amt num ${it.checked ? '' : 'muted'}">${fmtC(it.amount, it.currency || state.settings.currency)}</span>${payBtn(it)}</li>`).join('');
+  return `<section class="card" aria-label="Gastos fijos de la quincena">
+    <div class="row between"><p class="h2">Gastos fijos · ${esc(r.label)}</p>${loaded ? `<small class="badge">${prog.paid}/${prog.total} pagados</small>` : ''}</div>
+    <p class="muted small">Marcá los que vas a pagar esta quincena. La próxima vienen pre-marcados igual que esta.</p>
+    <ul class="list" style="margin-top:8px">${rows}</ul>
+    <div class="row between" style="margin-top:10px"><span class="muted">Total seleccionado (${nSel})</span><b class="num neg" style="font-size:18px">${fmt(total)}</b></div>
+    ${loaded ? '' : `<button class="btn block" data-act="qload" style="margin-top:10px">Cargar ${nSel} ${nSel === 1 ? 'gasto' : 'gastos'} de la quincena</button>`}</section>`;
+}
+
 export function homeView() {
   const r = rangeOf(ui.kind, ui.anchor);
   const cur = txsIn(r);
@@ -180,7 +211,7 @@ export function homeView() {
   return `<div class="page cols">
     <h1 class="h1">Resumen</h1>
     ${periodControls()}
-    ${nudge()}${alertsCard()}${quick}${tiles}${daily}
+    ${nudge()}${alertsCard()}${quick}${tiles}${quincenaCard()}${daily}
     <section class="card hero" aria-label="Balance del periodo">
       <p class="h2">Balance del periodo</p>
       <p class="big num ${s.net < 0 ? 'neg' : ''}">${fmt(s.net)}</p>

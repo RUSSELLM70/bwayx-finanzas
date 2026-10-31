@@ -2,14 +2,16 @@
 import { iso } from './dates.js';
 
 export const KEY = 'finanzasos:v1';
-export const SCHEMA = 1; // sube este número al cambiar el formato y migra en load()
-const DEFAULTS = () => ({ txs: [], fixed: [], debts: [], goals: [], paid: {}, settings: { currency: 'CRC', altCurrency: 'USD', altRate: 510, savingsGoalPct: 20, budgets: {}, onboarded: false, method: 'avalanche', debtExtra: null, notify: { on: false, lead: 2, tips: true } } });
+export const SCHEMA = 2; // sube este número al cambiar el formato y migra en load()
+// qsel: selección de gastos fijos por quincena → { "<inicio-quincena>": [fixedId,…] }.
+// Campo nuevo en SCHEMA 2; datos viejos (sin qsel) migran a {} de forma transparente.
+const DEFAULTS = () => ({ txs: [], fixed: [], debts: [], goals: [], paid: {}, qsel: {}, settings: { currency: 'CRC', altCurrency: 'USD', altRate: 510, savingsGoalPct: 20, budgets: {}, onboarded: false, method: 'avalanche', debtExtra: null, notify: { on: false, lead: 2, tips: true } } });
 
 export function load(parsed) {
   try {
     const raw = parsed ?? JSON.parse(localStorage.getItem(KEY));
     const d = DEFAULTS();
-    return { txs: Array.isArray(raw?.txs) ? raw.txs : d.txs, fixed: Array.isArray(raw?.fixed) ? raw.fixed : d.fixed, debts: Array.isArray(raw?.debts) ? raw.debts : d.debts, goals: Array.isArray(raw?.goals) ? raw.goals : d.goals, paid: raw?.paid && typeof raw.paid === 'object' ? raw.paid : d.paid, settings: { ...d.settings, ...(raw?.settings || {}) } };
+    return { txs: Array.isArray(raw?.txs) ? raw.txs : d.txs, fixed: Array.isArray(raw?.fixed) ? raw.fixed : d.fixed, debts: Array.isArray(raw?.debts) ? raw.debts : d.debts, goals: Array.isArray(raw?.goals) ? raw.goals : d.goals, paid: raw?.paid && typeof raw.paid === 'object' ? raw.paid : d.paid, qsel: raw?.qsel && typeof raw.qsel === 'object' ? raw.qsel : d.qsel, settings: { ...d.settings, ...(raw?.settings || {}) } };
   } catch {
     return DEFAULTS();
   }
@@ -39,7 +41,7 @@ export function sanitizeImport(obj) {
   const num = (x, def = 0) => (Number.isFinite(+x) ? +x : def);
   const debts = (Array.isArray(obj.debts) ? obj.debts : []).filter((d) => d && num(d.balance) >= 0).map((d) => ({ id: String(d.id || uid()), name: cleanText(d.name || 'Deuda', 60) || 'Deuda', type: d.type === 'loan' ? 'loan' : 'card', currency: String(d.currency || 'CRC').slice(0, 5), balance: num(d.balance), apr: num(d.apr), min: num(d.min), dueDay: Math.min(31, Math.max(1, parseInt(d.dueDay, 10) || 1)), since: /^\d{4}-\d{2}-\d{2}$/.test(d.since) ? d.since : '2000-01-01' }));
   const goals = (Array.isArray(obj.goals) ? obj.goals : []).filter((g) => g && g.name).map((g) => ({ id: String(g.id || uid()), name: cleanText(g.name, 60) || 'Meta', target: Math.max(0, num(g.target)) }));
-  return { txs, fixed, debts, goals, paid: obj.paid && typeof obj.paid === 'object' ? obj.paid : {}, settings: { ...DEFAULTS().settings, ...(obj.settings || {}) } };
+  return { txs, fixed, debts, goals, paid: obj.paid && typeof obj.paid === 'object' ? obj.paid : {}, qsel: obj.qsel && typeof obj.qsel === 'object' ? obj.qsel : {}, settings: { ...DEFAULTS().settings, ...(obj.settings || {}) } };
 }
 
 /** Datos de ejemplo deterministas: ~3 meses hacia atrás desde hoy. */

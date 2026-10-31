@@ -1,5 +1,6 @@
 // Arranque y eventos. La lógica vive en ctx/derive/actions; las pantallas en views/sheets.
 import { shift, today, iso } from './dates.js';
+import { qKey, qDefault } from './quincena.js';
 import { sanitizeInput, cleanText } from './inputs.js';
 import * as mirror from './mirror.js';
 import * as notify from './notify.js';
@@ -116,6 +117,18 @@ document.addEventListener('click', (e) => {
 
     // pagos
     case 'togglepay': { const msg = togglePay(b.dataset.key); render(); if (msg) toast(msg); break; }
+    case 'qtoggle': { // incluir/quitar un gasto fijo de la quincena actual
+      const k = qKey(ui.anchor);
+      if (!Array.isArray(state.qsel[k])) state.qsel[k] = qDefault(state.fixed, ui.anchor, state.qsel);
+      const arr = state.qsel[k], i = arr.indexOf(id);
+      if (i >= 0) arr.splice(i, 1); else arr.push(id);
+      persist(); render(); break;
+    }
+    case 'qload': { // materializar la sugerencia de la quincena
+      const k = qKey(ui.anchor);
+      state.qsel[k] = qDefault(state.fixed, ui.anchor, state.qsel);
+      persist(); render(); toast('Gastos fijos de la quincena cargados'); break;
+    }
     case 'addbill': billSheet(); break;
     case 'delbill':
       ask({ title: '¿Eliminar este pago?', message: 'Se quitará de tu lista de pagos.', confirm: 'Eliminar', tone: 'danger' })

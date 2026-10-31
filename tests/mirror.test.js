@@ -118,7 +118,7 @@ test('el historial no se llena con copias idénticas ni crece sin límite', asyn
 test('guardado verificado: save() confirma lectura y añade versión de esquema', () => {
   localStorage.clear();
   assert.equal(save(load()), true);
-  assert.equal(JSON.parse(localStorage.getItem(KEY)).schema, 1);
+  assert.equal(JSON.parse(localStorage.getItem(KEY)).schema, 2);
   const real = localStorage.setItem.bind(localStorage);
   localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
   assert.equal(save(load()), false);

@@ -3,3 +3,6 @@ deploy/
 node_modules/
 .DS_Store
 .claude/
+
+# Local Netlify folder
+.netlify
