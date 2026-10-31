@@ -135,8 +135,8 @@ export function quincenaCard() {
   if (!state.fixed.length) {
     return `<section class="card" aria-label="Gastos fijos de la quincena">
       <p class="h2">Gastos fijos de la quincena</p>
-      <p class="muted small" style="margin-top:6px">Agregá tus gastos fijos y después elegís, en cada quincena, cuáles vas a pagar.</p>
-      <button class="btn ghost block" data-act="guide" style="margin-top:10px">Agregar gastos fijos</button></section>`;
+      <p class="muted small" style="margin-top:6px">Primero registrá tus gastos fijos (alquiler, servicios, suscripciones…). Después, en cada quincena, elegís cuáles vas a pagar.</p>
+      <button class="btn block" data-act="nav" data-v="settings" style="margin-top:10px">Agregar mis gastos fijos</button></section>`;
   }
   const items = qItems(state.fixed, ui.anchor, state.qsel, state.paid);
   const loaded = qLoaded(ui.anchor, state.qsel);
