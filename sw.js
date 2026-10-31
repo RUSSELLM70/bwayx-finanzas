@@ -1,7 +1,7 @@
 // Service worker: app shell offline. Red primero (siempre lo más nuevo) y caché como respaldo sin conexión.
 // build-deploy.sh reemplaza el nombre de la caché por una marca de tiempo en cada publicación: así el navegador detecta la versión nueva.
 const CACHE = 'finanzasos-v15';
-const SHELL = ['./', 'index.html', 'css/styles.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', ...['app', 'ctx', 'derive', 'actions', 'views', 'sheets', 'store', 'dates', 'advice', 'charts', 'fixed', 'debt', 'money', 'xlsx', 'vault', 'vault-ui', 'inputs', 'words', 'mirror', 'alerts', 'ics', 'notify', 'dialog'].map((m) => `js/${m}.js`)];
+const SHELL = ['./', 'index.html', 'css/styles.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', ...['app', 'ctx', 'derive', 'actions', 'views', 'sheets', 'store', 'dates', 'advice', 'charts', 'fixed', 'quincena', 'debt', 'money', 'xlsx', 'vault', 'vault-ui', 'inputs', 'words', 'mirror', 'alerts', 'ics', 'notify', 'dialog'].map((m) => `js/${m}.js`)];
 self.addEventListener('install', (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', (e) => {
