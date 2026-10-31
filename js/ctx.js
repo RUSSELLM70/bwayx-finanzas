@@ -1,4 +1,6 @@
 // Contexto compartido: estado, helpers de formato, iconos y utilidades de UI.
+// BUILD lo reemplaza build-deploy.sh con el identificador de la publicación (en local queda 'dev').
+export const BUILD = '__BUILD__';
 import { today, iso } from './dates.js';
 import { EXPENSE_CATS } from './advice.js';
 import { load, save, KEY } from './store.js';

@@ -15,5 +15,8 @@ mkdir deploy
 cp -R index.html manifest.webmanifest _headers css js icons deploy/
 sed "s/finanzasos-v[0-9A-Za-z]*/finanzasos-$BUILD/" sw.js > deploy/sw.js
 grep -q "finanzasos-$BUILD" deploy/sw.js || { echo "No se pudo marcar la versión del service worker"; exit 1; }
+# Sella la versión visible en la app (constante BUILD en ctx.js) para poder confirmar qué publicación tiene cada dispositivo.
+sed -i.bak "s/__BUILD__/$BUILD/" deploy/js/ctx.js && rm -f deploy/js/ctx.js.bak
+grep -q "BUILD = '$BUILD'" deploy/js/ctx.js || { echo "No se pudo sellar la versión en la app"; exit 1; }
 echo "Versión publicada: $BUILD"
 if [ "$ZIP" = 1 ]; then (cd deploy && zip -qr ../BWAY-X-Finanzas.zip .); echo "Listo: deploy/ y BWAY-X-Finanzas.zip ($(du -sh BWAY-X-Finanzas.zip | cut -f1))"; else echo "Listo: deploy/"; fi

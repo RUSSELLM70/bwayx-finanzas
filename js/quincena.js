@@ -87,7 +87,7 @@ export function qProgress(fixed, anchor, qsel, paid) {
  * repeticiones y excluye los que ya son gasto fijo. Ordena por repeticiones y
  * monto (lo recurrente y grande primero).
  */
-export function recentFixedCandidates(txs, fixed, now = today(), days = 45) {
+export function recentFixedCandidates(txs, fixed, now = today(), days = 120) {
   const endIso = now;
   const start = iso(new Date(parse(endIso).getTime() - days * 86400000));
   const existing = new Set((fixed || []).map((f) => (f.name || '').trim().toLowerCase()));

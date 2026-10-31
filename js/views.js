@@ -9,7 +9,7 @@ import { CURRENCIES } from './money.js';
 import { goalBalance } from './actions.js';
 import { fmtNum } from './inputs.js';
 import { permission, supported } from './notify.js';
-import { state, ui, security, health, daysSince, notifySettings, esc, fmt, fmtC, fmtShort, icon, P, catColor, conv, sortTx, curField, prevLine } from './ctx.js';
+import { state, ui, security, health, daysSince, notifySettings, esc, fmt, fmtC, fmtShort, icon, P, catColor, conv, sortTx, curField, prevLine, BUILD } from './ctx.js';
 import { txsIn, payItems, statusLabel, debtList, planInputs, currentMethod, currentExtra, fortnightPlan, adviceInput, sumBy, currentAlerts } from './derive.js';
 
 // ---------- Componentes ----------
@@ -461,7 +461,8 @@ export function settingsView() {
       <input type="file" id="file" accept="application/json,.json" hidden>
       <button class="btn ghost block" data-act="guide">Repetir guía de inicio</button>
       <button class="btn ghost block" data-act="demo">Cargar datos de ejemplo</button>
-      <button class="btn danger block" data-act="wipe">${icon('trash')} Borrar todo</button></section></div>`;
+      <button class="btn danger block" data-act="wipe">${icon('trash')} Borrar todo</button></section>
+    <p class="muted small" style="text-align:center;opacity:.7">Versión ${esc(BUILD)}</p></div>`;
 }
 
 export const VIEWS = { setup: setupView, home: homeView, pagos: pagosView, debts: debtsView, savings: savingsView, more: moreView, moves: movesView, advice: adviceView, settings: settingsView };
