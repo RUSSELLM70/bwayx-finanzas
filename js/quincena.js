@@ -34,7 +34,8 @@ export const qLoaded = (anchor, qsel) => Array.isArray(qsel?.[qKey(anchor)]);
 /**
  * Sugerencia por defecto para una quincena aún no cargada:
  *  - repetir la última quincena cargada (aprende), filtrando fijos ya borrados;
- *  - si nunca se cargó ninguna, los fijos que caen por su frecuencia.
+ *  - si nunca se cargó ninguna, se pre-cargan TODOS los gastos fijos (así cada
+ *    quincena aparecen solos y el usuario destilda los que no paga esa quincena).
  */
 export function qDefault(fixed, anchor, qsel) {
   const list = Array.isArray(fixed) ? fixed : [];
@@ -45,8 +46,7 @@ export function qDefault(fixed, anchor, qsel) {
     const kept = qsel[prev[i]].filter((id) => ids.has(id));
     if (kept.length) return kept;
   }
-  const r = qRange(anchor);
-  return list.filter((f) => fixedHitsRange(f, r)).map((f) => f.id);
+  return list.map((f) => f.id);
 }
 
 /** IDs efectivamente seleccionados (cargados si existe la clave, si no la sugerencia). */

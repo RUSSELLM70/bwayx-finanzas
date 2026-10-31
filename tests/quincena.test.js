@@ -26,11 +26,9 @@ test('fixedHitsRange: mensual cae por día; quincenal cae por ciclo', () => {
   assert.equal(fixedHitsRange(fixed[2], r2), true);
 });
 
-test('qDefault (sin historial): sugiere los fijos que caen por frecuencia', () => {
-  const s = qDefault(fixed, '2026-10-05', {}).sort();
-  assert.deepEqual(s, ['alq', 'gym', 'net']);
-  const s2 = qDefault(fixed, '2026-10-20', {}).sort();
-  assert.deepEqual(s2, ['gym', 'nfx']);
+test('qDefault (sin historial): pre-carga TODOS los gastos fijos', () => {
+  assert.deepEqual(qDefault(fixed, '2026-10-05', {}).sort(), ['alq', 'gym', 'net', 'nfx']);
+  assert.deepEqual(qDefault(fixed, '2026-10-20', {}).sort(), ['alq', 'gym', 'net', 'nfx']);
 });
 
 test('qDefault aprende: repite la última quincena cargada (filtrando borrados)', () => {
